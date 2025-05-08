@@ -27,6 +27,27 @@ class BaseTestHttp(unittest.TestCase):
         self.db = SqliteQueueDatabase(TEST_DB)
         self.db.bind(models)
 
+        # Check if a User model is in the model list and add 2FA fields if needed
+        from frigate.models import User
+        if User in models:
+            # Check if the 2FA fields already exist in the User table
+            cursor = self.db.execute_sql("PRAGMA table_info(user)")
+            columns = [column[1] for column in cursor.fetchall()]
+
+            # Add 2FA fields if they don't exist
+            if "two_factor_enabled" not in columns:
+                self.db.execute_sql(
+                    'ALTER TABLE "user" ADD COLUMN "two_factor_enabled" BOOLEAN NOT NULL DEFAULT 0'
+                )
+            if "two_factor_secret" not in columns:
+                self.db.execute_sql(
+                    'ALTER TABLE "user" ADD COLUMN "two_factor_secret" VARCHAR(64) NULL'
+                )
+            if "recovery_codes" not in columns:
+                self.db.execute_sql(
+                    'ALTER TABLE "user" ADD COLUMN "recovery_codes" JSON NULL'
+                )
+
         self.minimal_config = {
             "mqtt": {"host": "mqtt"},
             "cameras": {
