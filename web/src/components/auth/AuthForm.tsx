@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { baseUrl } from "../../api/baseUrl";
+import { baseUrl } from "@/api/baseUrl";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,12 +22,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AuthContext } from "@/context/auth-context";
 import { useTranslation } from "react-i18next";
+import { TwoFactorForm } from "./TwoFactorForm";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const { t } = useTranslation(["components/auth"]);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [requires2FA, setRequires2FA] = React.useState<boolean>(false);
+  const [username2FA, setUsername2FA] = React.useState<string>("");
   const { login } = React.useContext(AuthContext);
 
   const formSchema = z.object({
@@ -44,17 +47,31 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      await axios.post(
-        "/login",
+      const response = await axios.post(
+        "/api/login",
         {
           user: values.user,
           password: values.password,
         },
         {
           headers: { "X-CSRF-TOKEN": 1 },
+          baseURL: window.location.origin, // Use absolute URL to bypass axios baseURL
         },
       );
-      const profileRes = await axios.get("/profile", { withCredentials: true });
+
+      // Check if 2FA is required - handle both snake_case and camelCase property names
+      if (response.data.requires_2fa || response.data.requires2fa) {
+        setRequires2FA(true);
+        // Handle both snake_case and camelCase property names for the user
+        setUsername2FA(response.data.user);
+        setIsLoading(false);
+        return;
+      }
+
+      const profileRes = await axios.get("/api/profile", {
+        withCredentials: true,
+        baseURL: window.location.origin, // Use absolute URL to bypass axios baseURL
+      });
       login({
         username: profileRes.data.username,
         role: profileRes.data.role || "viewer",
@@ -88,51 +105,55 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
 
   return (
     <div className={cn("grid gap-6", className)} {...props}>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            name="user"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("form.user")}</FormLabel>
-                <FormControl>
-                  <Input
-                    className="text-md w-full border border-input bg-background p-2 hover:bg-accent hover:text-accent-foreground dark:[color-scheme:dark]"
-                    autoFocus
-                    {...field}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("form.password")}</FormLabel>
-                <FormControl>
-                  <Input
-                    className="text-md w-full border border-input bg-background p-2 hover:bg-accent hover:text-accent-foreground dark:[color-scheme:dark]"
-                    type="password"
-                    {...field}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <div className="flex flex-row gap-2 pt-5">
-            <Button
-              variant="select"
-              disabled={isLoading}
-              className="flex flex-1"
-              aria-label={t("form.login")}
-            >
-              {isLoading && <ActivityIndicator className="mr-2 h-4 w-4" />}
-              {t("form.login")}
-            </Button>
-          </div>
-        </form>
-      </Form>
+      {requires2FA ? (
+        <TwoFactorForm username={username2FA} />
+      ) : (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              name="user"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("form.user")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="text-md w-full border border-input bg-background p-2 hover:bg-accent hover:text-accent-foreground dark:[color-scheme:dark]"
+                      autoFocus
+                      {...field}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("form.password")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="text-md w-full border border-input bg-background p-2 hover:bg-accent hover:text-accent-foreground dark:[color-scheme:dark]"
+                      type="password"
+                      {...field}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <div className="flex flex-row gap-2 pt-5">
+              <Button
+                variant="select"
+                disabled={isLoading}
+                className="flex flex-1"
+                aria-label={t("form.login")}
+              >
+                {isLoading && <ActivityIndicator className="mr-2 h-4 w-4" />}
+                {t("form.login")}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      )}
       <Toaster />
     </div>
   );

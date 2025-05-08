@@ -550,6 +550,67 @@
       }
     }
   },
+  "twoFactor": {
+    "title": "Two-Factor Authentication",
+    "description": "Secure your account with two-factor authentication",
+    "tabs": {
+      "setup": "Setup",
+      "disable": "Disable",
+      "recoveryCodes": "Recovery Codes"
+    },
+    "setup": {
+      "intro": "Two-factor authentication adds an extra layer of security to your account by requiring a verification code in addition to your password.",
+      "startButton": "Start Setup",
+      "scanQrTitle": "Scan QR Code",
+      "scanQrDescription": "Scan this QR code with your authenticator app (like Google Authenticator, Authy, or Microsoft Authenticator).",
+      "qrPlaceholder": "QR code loading...",
+      "manualCode": "Manual entry code",
+      "password": "Current Password",
+      "passwordPlaceholder": "Enter your current password",
+      "verificationCode": "Verification Code",
+      "verificationCodePlaceholder": "Enter 6-digit code",
+      "enableButton": "Enable Two-Factor Authentication"
+    },
+    "disable": {
+      "warning": "Warning",
+      "warningDescription": "Disabling two-factor authentication will make your account less secure.",
+      "password": "Current Password",
+      "passwordPlaceholder": "Enter your current password",
+      "verificationCode": "Verification Code",
+      "verificationCodePlaceholder": "Enter 6-digit code",
+      "recoveryCode": "Recovery Code",
+      "recoveryCodePlaceholder": "Enter recovery code",
+      "useVerificationCode": "Use verification code instead",
+      "useRecoveryCode": "Use recovery code instead",
+      "disableButton": "Disable Two-Factor Authentication"
+    },
+    "recoveryCodes": {
+      "title": "Recovery Codes",
+      "description": "Each code can only be used once. Store these in a secure place.",
+      "saveTitle": "Save Your Recovery Codes",
+      "saveDescription": "Recovery codes can be used to access your account if you lose your authenticator device. Each code can only be used once.",
+      "doneButton": "Done",
+      "generateIntro": "Generate new recovery codes for your account. This will invalidate any existing recovery codes.",
+      "password": "Current Password",
+      "passwordPlaceholder": "Enter your current password",
+      "generateButton": "Generate New Recovery Codes"
+    },
+    "errors": {
+      "setupFailed": "Failed to initialize 2FA setup",
+      "missingFields": "All fields are required",
+      "enableFailed": "Failed to enable two-factor authentication",
+      "disableFailed": "Failed to disable two-factor authentication",
+      "passwordRequired": "Password is required",
+      "generateRecoveryCodesFailed": "Failed to generate recovery codes"
+    },
+    "toast": {
+      "success": {
+        "enabled": "Two-factor authentication enabled successfully",
+        "disabled": "Two-factor authentication disabled successfully",
+        "recoveryCodesGenerated": "New recovery codes generated successfully"
+      }
+    }
+  },
   "frigatePlus": {
     "title": "Frigate+ Settings",
     "apiKey": {

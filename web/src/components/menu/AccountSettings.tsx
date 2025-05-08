@@ -3,7 +3,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { baseUrl } from "../../api/baseUrl";
+import { baseUrl } from "@/api/baseUrl.ts";
 import { cn } from "@/lib/utils";
 import { TooltipPortal } from "@radix-ui/react-tooltip";
 import { isDesktop } from "react-device-detect";
@@ -22,13 +22,14 @@ import {
   DrawerTrigger,
   DrawerClose,
 } from "@/components/ui/drawer";
-import { LuLogOut, LuSquarePen } from "react-icons/lu";
+import { LuLogOut, LuSquarePen, LuShieldCheck } from "react-icons/lu";
 import useSWR from "swr";
 
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import SetPasswordDialog from "../overlay/SetPasswordDialog";
+import TwoFactorAuthDialog from "../overlay/TwoFactorAuthDialog";
 import { useTranslation } from "react-i18next";
 
 type AccountSettingsProps = {
@@ -42,6 +43,7 @@ export default function AccountSettings({ className }: AccountSettingsProps) {
   const logoutUrl = config?.proxy?.logout_url || `${baseUrl}api/logout`;
 
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [twoFactorDialogOpen, setTwoFactorDialogOpen] = useState(false);
 
   const Container = isDesktop ? DropdownMenu : Drawer;
   const Trigger = isDesktop ? DropdownMenuTrigger : DrawerTrigger;
@@ -136,6 +138,20 @@ export default function AccountSettings({ className }: AccountSettingsProps) {
             </MenuItem>
           )}
 
+          {profile?.username && profile.username !== "anonymous" && (
+            <MenuItem
+              className={cn(
+                "flex w-full items-center gap-2",
+                isDesktop ? "cursor-pointer" : "p-2 text-sm",
+              )}
+              aria-label={t("menu.user.security", { ns: "common" })}
+              onClick={() => setTwoFactorDialogOpen(true)}
+            >
+              <LuShieldCheck className="mr-2 size-4" />
+              <span>{t("menu.user.security", { ns: "common" })}</span>
+            </MenuItem>
+          )}
+
           <MenuItem
             className={cn(
               "flex w-full items-center gap-2",
@@ -155,6 +171,11 @@ export default function AccountSettings({ className }: AccountSettingsProps) {
         show={passwordDialogOpen}
         onSave={handlePasswordSave}
         onCancel={() => setPasswordDialogOpen(false)}
+        username={profile?.username}
+      />
+      <TwoFactorAuthDialog
+        show={twoFactorDialogOpen}
+        onClose={() => setTwoFactorDialogOpen(false)}
         username={profile?.username}
       />
     </Container>
