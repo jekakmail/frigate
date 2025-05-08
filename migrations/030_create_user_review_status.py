@@ -26,13 +26,13 @@ Some examples (model - class or model_name)::
 
 import peewee as pw
 
-from frigate.models import User, UserReviewStatus
+from frigate.models import UserReviewStatus
 
 SQL = pw.SQL
 
 
 def migrate(migrator, database, fake=False, **kwargs):
-    User._meta.database = database
+    # Set the database for UserReviewStatus
     UserReviewStatus._meta.database = database
 
     migrator.sql(
@@ -54,24 +54,29 @@ def migrate(migrator, database, fake=False, **kwargs):
 
     # Migrate existing has_been_reviewed data to UserReviewStatus for all users
     def migrate_data():
-        all_users = list(User.select())
-        if not all_users:
-            return
+        try:
+            # Get usernames directly with SQL to avoid loading the User model which might have fields not yet in DB
+            cursor = database.execute_sql('SELECT "username" FROM "user"')
+            usernames = [row[0] for row in cursor.fetchall()] + ["anonymous"]
+            if not usernames:
+                return
 
-        cursor = database.execute_sql(
-            'SELECT "id" FROM "reviewsegment" WHERE "has_been_reviewed" = 1'
-        )
-        reviewed_segment_ids = [row[0] for row in cursor.fetchall()]
-        # also migrate for anonymous (unauthenticated users)
-        usernames = [user.username for user in all_users] + ["anonymous"]
+            cursor = database.execute_sql(
+                'SELECT "id" FROM "reviewsegment" WHERE "has_been_reviewed" = 1'
+            )
+            reviewed_segment_ids = [row[0] for row in cursor.fetchall()]
 
-        for segment_id in reviewed_segment_ids:
-            for username in usernames:
-                UserReviewStatus.create(
-                    user_id=username,
-                    review_segment=segment_id,
-                    has_been_reviewed=True,
-                )
+            # Use direct SQL to insert records instead of using the model
+            for segment_id in reviewed_segment_ids:
+                for username in usernames:
+                    database.execute_sql(
+                        'INSERT INTO "userreviewstatus" ("user_id", "review_segment_id", "has_been_reviewed") VALUES (?, ?, ?)',
+                        (username, segment_id, 1)
+                    )
+        except Exception as e:
+            # Log the error but continue with migration
+            print(f"Error during data migration: {e}")
+            # If we can't migrate the data, we'll just continue without it
 
     if not fake:  # Only run data migration if not faking
         migrator.python(migrate_data)
