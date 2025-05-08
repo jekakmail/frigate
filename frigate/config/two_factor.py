@@ -7,7 +7,7 @@ __all__ = ["TwoFactorConfig"]
 
 class TwoFactorConfig(FrigateBaseModel):
     enabled: bool = Field(
-        default=True, title="Enable two-factor authentication functionality"
+        default=False, title="Enable two-factor authentication functionality"
     )
     code_validity: int = Field(
         default=30, title="Validity period for TOTP codes in seconds", ge=30, le=120
