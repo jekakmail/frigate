@@ -3,6 +3,7 @@ from typing import Optional
 from pydantic import Field
 
 from .base import FrigateBaseModel
+from .two_factor import TwoFactorConfig
 
 __all__ = ["AuthConfig"]
 
@@ -34,3 +35,7 @@ class AuthConfig(FrigateBaseModel):
     )
     # As of Feb 2023, OWASP recommends 600000 iterations for PBKDF2-SHA256
     hash_iterations: int = Field(default=600000, title="Password hash iterations")
+    # Two-factor authentication settings
+    two_factor: TwoFactorConfig = Field(
+        default_factory=TwoFactorConfig, title="Two-factor authentication configuration"
+    )

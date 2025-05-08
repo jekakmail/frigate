@@ -132,3 +132,8 @@ class User(Model):  # type: ignore[misc]
     )
     password_hash = CharField(null=False, max_length=120)
     notification_tokens = JSONField()
+    two_factor_enabled = BooleanField(default=False)
+    two_factor_secret = CharField(max_length=64, null=True)
+    recovery_codes = JSONField(null=True)
+    used_totp_codes = JSONField(null=True)
+    device_tokens = JSONField(null=True)
