@@ -22,5 +22,33 @@ class AppPostLoginBody(BaseModel):
     password: str
 
 
+class AppPostVerifyTotpBody(BaseModel):
+    user: str
+    totp_code: str
+    remember_device: Optional[bool] = False
+
+
 class AppPutRoleBody(BaseModel):
     role: str
+
+
+class AppPostEnableTwoFactorBody(BaseModel):
+    password: str
+    totp_code: str
+    secret: str
+
+
+class AppPostDisableTwoFactorBody(BaseModel):
+    password: str
+    totp_code: Optional[str] = None
+    recovery_code: Optional[str] = None
+
+
+class AppPostVerifyRecoveryCodeBody(BaseModel):
+    user: str
+    recovery_code: str
+    remember_device: Optional[bool] = False
+
+
+class AppPostGenerateRecoveryCodesBody(BaseModel):
+    password: str
