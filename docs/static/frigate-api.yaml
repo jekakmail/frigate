@@ -192,6 +192,166 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HTTPValidationError"
+  "/two-factor/setup":
+    post:
+      tags:
+        - Auth
+      summary: Setup Two-Factor
+      operationId: two_factor_setup_two_factor_setup_post
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TwoFactorSetupResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  "/two-factor/enable":
+    post:
+      tags:
+        - Auth
+      summary: Enable Two-Factor
+      operationId: two_factor_enable_two_factor_enable_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TwoFactorVerifyBody"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the operation was successful
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  "/two-factor/disable":
+    post:
+      tags:
+        - Auth
+      summary: Disable Two-Factor
+      operationId: two_factor_disable_two_factor_disable_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TwoFactorVerifyBody"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the operation was successful
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  "/two-factor/recovery-codes":
+    post:
+      tags:
+        - Auth
+      summary: Generate Recovery Codes
+      operationId: two_factor_recovery_codes_two_factor_recovery_codes_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TwoFactorVerifyBody"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TwoFactorRecoveryCodesResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  "/verify-totp":
+    post:
+      tags:
+        - Auth
+      summary: Verify TOTP
+      operationId: verify_totp_verify_totp_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TwoFactorVerifyBody"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the verification was successful
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  "/verify-recovery-code":
+    post:
+      tags:
+        - Auth
+      summary: Verify Recovery Code
+      operationId: verify_recovery_code_verify_recovery_code_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TwoFactorVerifyBody"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the verification was successful
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
   /faces:
     get:
       tags:
@@ -4219,3 +4379,40 @@ components:
         - msg
         - type
       title: ValidationError
+    TwoFactorSetupResponse:
+      properties:
+        secret:
+          type: string
+          title: Secret
+          description: TOTP secret key
+        uri:
+          type: string
+          title: URI
+          description: URI for QR code generation
+      type: object
+      required:
+        - secret
+        - uri
+      title: TwoFactorSetupResponse
+    TwoFactorVerifyBody:
+      properties:
+        code:
+          type: string
+          title: Code
+          description: TOTP verification code or recovery code
+      type: object
+      required:
+        - code
+      title: TwoFactorVerifyBody
+    TwoFactorRecoveryCodesResponse:
+      properties:
+        recovery_codes:
+          type: array
+          items:
+            type: string
+          title: Recovery Codes
+          description: List of recovery codes
+      type: object
+      required:
+        - recovery_codes
+      title: TwoFactorRecoveryCodesResponse
