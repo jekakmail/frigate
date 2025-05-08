@@ -21,8 +21,8 @@ Two-factor authentication can be configured in the Frigate configuration file:
 auth:
   # Two-factor authentication settings
   two_factor:
-    # Enable or disable the two-factor authentication requirement for all users
-    required: false
+    # Enable or disable two-factor authentication functionality
+    enabled: true
 
     # Validity period for TOTP codes in seconds (30-120)
     code_validity: 30
@@ -38,7 +38,7 @@ auth:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `auth.two_factor.required` | `false` | If set to `true`, all users will be required to set up 2FA. |
+| `auth.two_factor.enabled` | `true` | If set to `false`, two-factor authentication functionality will be disabled for all users. |
 | `auth.two_factor.code_validity` | `30` | The validity period for TOTP codes in seconds. Valid values are between 30 and 120 seconds. |
 | `auth.two_factor.recovery_codes_count` | `10` | The number of recovery codes to generate for each user. Valid values are between 5 and 20. |
 | `auth.two_factor.device_token_expiry_days` | `30` | The number of days before "Remember this device" tokens expire. Valid values are between 1 and 365 days. |
