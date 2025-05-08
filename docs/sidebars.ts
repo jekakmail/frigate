@@ -65,6 +65,7 @@ const sidebars: SidebarsConfig = {
       ],
       "Extra Configuration": [
         "configuration/authentication",
+        "configuration/two_factor_authentication",
         "configuration/notifications",
         "configuration/ffmpeg_presets",
         "configuration/pwa",

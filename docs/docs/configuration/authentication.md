@@ -7,6 +7,8 @@ title: Authentication
 
 Frigate stores user information in its database. Password hashes are generated using industry standard PBKDF2-SHA256 with 600,000 iterations. Upon successful login, a JWT token is issued with an expiration date and set as a cookie. The cookie is refreshed as needed automatically. This JWT token can also be passed in the Authorization header as a bearer token.
 
+Frigate supports two-factor authentication (2FA) for additional security. See the [Two-Factor Authentication](two_factor_authentication.md) page for details on setting up and using 2FA.
+
 Users are managed in the UI under Settings > Users.
 
 The following ports are available to access the Frigate web UI.
