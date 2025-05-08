@@ -749,6 +749,7 @@ def login(request: Request, body: AppPostLoginBody):
     JWT_COOKIE_SECURE = request.app.frigate_config.auth.cookie_secure
     JWT_SESSION_LENGTH = request.app.frigate_config.auth.session_length
     DEVICE_TOKEN_COOKIE_NAME = f"{JWT_COOKIE_NAME}_device"
+    TWO_FACTOR_ENABLED = request.app.frigate_config.auth.two_factor.enabled
     user = body.user
     password = body.password
 
@@ -765,8 +766,8 @@ def login(request: Request, body: AppPostLoginBody):
 
     password_hash = db_user.password_hash
     if verify_password(password, password_hash):
-        # Check if 2FA is enabled for this user
-        if db_user.two_factor_enabled:
+        # Check if 2FA is enabled globally and for this user
+        if TWO_FACTOR_ENABLED and db_user.two_factor_enabled:
             # Check if there's a valid device token in the cookies
             device_token = request.cookies.get(DEVICE_TOKEN_COOKIE_NAME)
             if device_token and validate_device_token(user, device_token):
@@ -793,7 +794,7 @@ def login(request: Request, body: AppPostLoginBody):
                     status_code=200,
                 )
 
-        # If 2FA is not enabled, proceed with normal login
+        # If 2FA is not enabled (either globally or for this user), proceed with normal login
         role = getattr(db_user, "role", "viewer")
         if role not in ["admin", "viewer"]:
             role = "viewer"  # Enforce valid roles
@@ -914,6 +915,7 @@ def verify_totp_code(request: Request, body: AppPostVerifyTotpBody):
     TWO_FACTOR_CODE_VALIDITY = request.app.frigate_config.auth.two_factor.code_validity
     DEVICE_TOKEN_COOKIE_NAME = f"{JWT_COOKIE_NAME}_device"
     DEVICE_TOKEN_EXPIRY_DAYS = request.app.frigate_config.auth.two_factor.device_token_expiry_days
+    TWO_FACTOR_ENABLED = request.app.frigate_config.auth.two_factor.enabled
 
     user = body.user
     totp_code = body.totp_code
@@ -922,6 +924,14 @@ def verify_totp_code(request: Request, body: AppPostVerifyTotpBody):
     # Generic error responses
     verification_failed = JSONResponse(content={"message": "Verification failed"}, status_code=401)
     config_error = JSONResponse(content={"message": "Authentication configuration error"}, status_code=400)
+
+    # Check if 2FA is globally enabled
+    if not TWO_FACTOR_ENABLED:
+        logger.warning(f"Two-factor authentication is disabled globally")
+        return JSONResponse(
+            content={"message": "Two-factor authentication is disabled globally"},
+            status_code=400
+        )
 
     try:
         db_user: User = User.get_by_id(user)
@@ -994,6 +1004,7 @@ def verify_recovery_code_endpoint(request: Request, body: AppPostVerifyRecoveryC
     JWT_SESSION_LENGTH = request.app.frigate_config.auth.session_length
     DEVICE_TOKEN_COOKIE_NAME = f"{JWT_COOKIE_NAME}_device"
     DEVICE_TOKEN_EXPIRY_DAYS = request.app.frigate_config.auth.two_factor.device_token_expiry_days
+    TWO_FACTOR_ENABLED = request.app.frigate_config.auth.two_factor.enabled
 
     user = body.user
     recovery_code = body.recovery_code
@@ -1002,6 +1013,14 @@ def verify_recovery_code_endpoint(request: Request, body: AppPostVerifyRecoveryC
     # Generic error responses
     verification_failed = JSONResponse(content={"message": "Verification failed"}, status_code=401)
     config_error = JSONResponse(content={"message": "Authentication configuration error"}, status_code=400)
+
+    # Check if 2FA is globally enabled
+    if not TWO_FACTOR_ENABLED:
+        logger.warning(f"Two-factor authentication is disabled globally")
+        return JSONResponse(
+            content={"message": "Two-factor authentication is disabled globally"},
+            status_code=400
+        )
 
     try:
         db_user: User = User.get_by_id(user)
@@ -1079,6 +1098,14 @@ async def setup_two_factor(request: Request):
         # auth failed
         return current_user
 
+    # Check if 2FA is globally enabled
+    TWO_FACTOR_ENABLED = request.app.frigate_config.auth.two_factor.enabled
+    if not TWO_FACTOR_ENABLED:
+        return JSONResponse(
+            content={"message": "Two-factor authentication is disabled globally"},
+            status_code=400
+        )
+
     username = current_user.get("username")
 
     # Generate a new TOTP secret
@@ -1102,6 +1129,15 @@ async def enable_two_factor(request: Request, body: AppPostEnableTwoFactorBody):
         # auth failed
         logger.debug("Failed to get current user in two-factor/enable endpoint")
         return current_user
+
+    # Check if 2FA is globally enabled
+    TWO_FACTOR_ENABLED = request.app.frigate_config.auth.two_factor.enabled
+    if not TWO_FACTOR_ENABLED:
+        logger.debug("2FA is disabled globally")
+        return JSONResponse(
+            content={"message": "Two-factor authentication is disabled globally"},
+            status_code=400
+        )
 
     username = current_user.get("username")
     password = body.password
@@ -1242,6 +1278,15 @@ async def generate_recovery_codes_endpoint(request: Request, body: AppPostGenera
         # auth failed
         logger.debug("Failed to get current user in two-factor/recovery-codes endpoint")
         return current_user
+
+    # Check if 2FA is globally enabled
+    TWO_FACTOR_ENABLED = request.app.frigate_config.auth.two_factor.enabled
+    if not TWO_FACTOR_ENABLED:
+        logger.warning(f"Two-factor authentication is disabled globally")
+        return JSONResponse(
+            content={"message": "Two-factor authentication is disabled globally"},
+            status_code=400
+        )
 
     username = current_user.get("username")
     password = body.password
