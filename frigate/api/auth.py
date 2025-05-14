@@ -813,7 +813,7 @@ def login(request: Request, body: AppPostLoginBody):
 @router.get("/users", dependencies=[Depends(require_role(["admin"]))])
 def get_users():
     exports = (
-        User.select(User.username, User.role).order_by(User.username).dicts().iterator()
+        User.select(User.username, User.role, User.two_factor_enabled).order_by(User.username).dicts().iterator()
     )
     return JSONResponse([e for e in exports])
 

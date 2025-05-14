@@ -435,6 +435,7 @@
       "username": "Username",
       "actions": "Actions",
       "role": "Role",
+      "twoFactor": "Two-Factor Auth",
       "noUsers": "No users found.",
       "changeRole": "Change user role",
       "password": "Password",
@@ -560,6 +561,8 @@
   "twoFactor": {
     "title": "Two-Factor Authentication",
     "description": "Secure your account with two-factor authentication",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
     "tabs": {
       "setup": "Setup",
       "disable": "Disable",

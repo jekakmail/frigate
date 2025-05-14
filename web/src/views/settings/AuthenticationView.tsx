@@ -14,7 +14,13 @@ import DeleteUserDialog from "@/components/overlay/DeleteUserDialog";
 import { HiTrash } from "react-icons/hi";
 import { FaUserEdit } from "react-icons/fa";
 
-import { LuPlus, LuShield, LuUserCog } from "react-icons/lu";
+import {
+  LuPlus,
+  LuShield,
+  LuShieldAlert,
+  LuShieldCheck,
+  LuUserCog,
+} from "react-icons/lu";
 import {
   Table,
   TableBody,
@@ -225,6 +231,7 @@ export default function AuthenticationView() {
                       {t("users.table.username")}
                     </TableHead>
                     <TableHead>{t("users.table.role")}</TableHead>
+                    <TableHead>{t("users.table.twoFactor")}</TableHead>
                     <TableHead className="text-right">
                       {t("users.table.actions")}
                     </TableHead>
@@ -265,6 +272,27 @@ export default function AuthenticationView() {
                               ns: "common",
                             })}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {user.two_factor_enabled ? (
+                              <Badge
+                                variant="default"
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                <LuShieldCheck className="mr-1 size-3.5" />
+                                {t("twoFactor.enabled")}
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className="text-muted-foreground"
+                              >
+                                <LuShieldAlert className="mr-1 size-3.5" />
+                                {t("twoFactor.disabled")}
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <TooltipProvider>
