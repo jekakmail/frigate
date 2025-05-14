@@ -191,3 +191,10 @@ To use role-based access control, you must connect to Frigate via the **authenti
 1. Log in as an **admin** user via port `8971`.
 2. Navigate to **Settings > Users**.
 3. Edit a user’s role by selecting **admin** or **viewer**.
+
+The Users table displays a badge indicating whether two-factor authentication is enabled or disabled for each user:
+
+- **Enabled**: A green badge with a shield check icon indicates that two-factor authentication is enabled for the user.
+- **Disabled**: A gray outline badge with a shield alert icon indicates that two-factor authentication is disabled for the user.
+
+This visual indicator helps administrators quickly identify which users have enhanced their account security with 2FA. Users can enable or disable 2FA for their own accounts through the Security dialog in their account settings. See the [Two-Factor Authentication](two_factor_authentication.md) page for details.
