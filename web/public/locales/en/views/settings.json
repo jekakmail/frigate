@@ -486,7 +486,8 @@
       "passwordSetting": {
         "updatePassword": "Update Password for {{username}}",
         "setPassword": "Set Password",
-        "desc": "Create a strong password to secure this account."
+        "desc": "Create a strong password to secure this account.",
+        "updateButton": "Update"
       },
       "changeRole": {
         "title": "Change User Role",

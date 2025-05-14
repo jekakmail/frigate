@@ -22,13 +22,10 @@ import {
   DrawerTrigger,
   DrawerClose,
 } from "@/components/ui/drawer";
-import { LuLogOut, LuSquarePen, LuShieldCheck } from "react-icons/lu";
+import { LuLogOut, LuShieldCheck } from "react-icons/lu";
 import useSWR from "swr";
 
 import { useState } from "react";
-import axios from "axios";
-import { toast } from "sonner";
-import SetPasswordDialog from "../overlay/SetPasswordDialog";
 import TwoFactorAuthDialog from "../overlay/TwoFactorAuthDialog";
 import { useTranslation } from "react-i18next";
 
@@ -42,41 +39,12 @@ export default function AccountSettings({ className }: AccountSettingsProps) {
   const { data: config } = useSWR("config");
   const logoutUrl = config?.proxy?.logout_url || `${baseUrl}api/logout`;
 
-  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [twoFactorDialogOpen, setTwoFactorDialogOpen] = useState(false);
 
   const Container = isDesktop ? DropdownMenu : Drawer;
   const Trigger = isDesktop ? DropdownMenuTrigger : DrawerTrigger;
   const Content = isDesktop ? DropdownMenuContent : DrawerContent;
   const MenuItem = isDesktop ? DropdownMenuItem : DrawerClose;
-
-  const handlePasswordSave = async (password: string) => {
-    if (!profile?.username || profile.username === "anonymous") return;
-    axios
-      .put(`users/${profile.username}/password`, { password })
-      .then((response) => {
-        if (response.status === 200) {
-          setPasswordDialogOpen(false);
-          toast.success(t("users.toast.success.updatePassword"), {
-            position: "top-center",
-          });
-        }
-      })
-      .catch((error) => {
-        const errorMessage =
-          error.response?.data?.message ||
-          error.response?.data?.detail ||
-          "Unknown error";
-        toast.error(
-          t("users.toast.error.setPasswordFailed", {
-            errorMessage,
-          }),
-          {
-            position: "top-center",
-          },
-        );
-      });
-  };
 
   return (
     <Container modal={!isDesktop}>
@@ -130,20 +98,6 @@ export default function AccountSettings({ className }: AccountSettingsProps) {
                 "flex w-full items-center gap-2",
                 isDesktop ? "cursor-pointer" : "p-2 text-sm",
               )}
-              aria-label={t("menu.user.setPassword", { ns: "common" })}
-              onClick={() => setPasswordDialogOpen(true)}
-            >
-              <LuSquarePen className="mr-2 size-4" />
-              <span>{t("menu.user.setPassword", { ns: "common" })}</span>
-            </MenuItem>
-          )}
-
-          {profile?.username && profile.username !== "anonymous" && (
-            <MenuItem
-              className={cn(
-                "flex w-full items-center gap-2",
-                isDesktop ? "cursor-pointer" : "p-2 text-sm",
-              )}
               aria-label={t("menu.user.security", { ns: "common" })}
               onClick={() => setTwoFactorDialogOpen(true)}
             >
@@ -167,12 +121,6 @@ export default function AccountSettings({ className }: AccountSettingsProps) {
           </MenuItem>
         </div>
       </Content>
-      <SetPasswordDialog
-        show={passwordDialogOpen}
-        onSave={handlePasswordSave}
-        onCancel={() => setPasswordDialogOpen(false)}
-        username={profile?.username}
-      />
       <TwoFactorAuthDialog
         show={twoFactorDialogOpen}
         onClose={() => setTwoFactorDialogOpen(false)}

@@ -18,7 +18,14 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Label } from "../ui/label";
-import { LuShieldCheck, LuShieldAlert, LuKey } from "react-icons/lu";
+import {
+  LuShieldCheck,
+  LuShieldAlert,
+  LuKey,
+  LuSquarePen,
+  LuCheck,
+  LuX,
+} from "react-icons/lu";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { toast } from "sonner";
@@ -67,10 +74,15 @@ export default function TwoFactorAuthDialog({
   const [recoveryPassword, setRecoveryPassword] = useState<string>("");
   const [showRecoveryCodes, setShowRecoveryCodes] = useState<boolean>(false);
 
+  // Password change tab state
+  const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [passwordStrength, setPasswordStrength] = useState<number>(0);
+
   // Reset state when the dialog opens/closes
   useEffect(() => {
     if (show) {
-      setActiveTab("setup");
+      setActiveTab("password");
       setError(null);
       setSetupPassword("");
       setSetupCode("");
@@ -81,6 +93,9 @@ export default function TwoFactorAuthDialog({
       setRecoveryPassword("");
       setShowRecoveryCodes(false);
       setRecoveryCodes([]);
+      setPassword("");
+      setConfirmPassword("");
+      setPasswordStrength(0);
 
       // Check if 2FA is already enabled
       checkTwoFactorStatus().then(() => {});
@@ -94,10 +109,8 @@ export default function TwoFactorAuthDialog({
     // If the API returns 2FA status, we can use it to determine which tab to show
     if (response.data.two_factor_enabled) {
       setIsTwoFactorEnabled(true);
-      setActiveTab("disable");
     } else {
       setIsTwoFactorEnabled(false);
-      setActiveTab("setup");
     }
   };
 
@@ -266,18 +279,113 @@ export default function TwoFactorAuthDialog({
     }
   };
 
+  // Simple password strength calculation
+  useEffect(() => {
+    if (!password) {
+      setPasswordStrength(0);
+      return;
+    }
+
+    let strength = 0;
+    // Length check
+    if (password.length >= 8) strength += 1;
+    // Contains number
+    if (/\d/.test(password)) strength += 1;
+    // Contains special char
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength += 1;
+    // Contains uppercase
+    if (/[A-Z]/.test(password)) strength += 1;
+
+    setPasswordStrength(strength);
+  }, [password]);
+
+  const getStrengthLabel = () => {
+    if (!password) return "";
+    if (passwordStrength <= 1)
+      return t("users.dialog.form.password.strength.weak");
+    if (passwordStrength === 2)
+      return t("users.dialog.form.password.strength.medium");
+    if (passwordStrength === 3)
+      return t("users.dialog.form.password.strength.strong");
+    return t("users.dialog.form.password.strength.veryStrong");
+  };
+
+  const getStrengthColor = () => {
+    if (!password) return "bg-gray-200";
+    if (passwordStrength <= 1) return "bg-red-500";
+    if (passwordStrength === 2) return "bg-yellow-500";
+    if (passwordStrength === 3) return "bg-green-500";
+    return "bg-green-600";
+  };
+
+  const handlePasswordChange = async () => {
+    if (!password) {
+      setError(t("users.dialog.form.password.required"));
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError(t("users.dialog.form.password.notMatch"));
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.put(
+        `/api/users/${_username}/password`,
+        { password },
+        {
+          baseURL: window.location.origin, // Use absolute URL to bypass axios baseURL
+          headers: { "X-CSRF-TOKEN": "1" }, // Add CSRF token header
+        },
+      );
+
+      if (response.status === 200) {
+        toast.success(t("users.toast.success.updatePassword"), {
+          position: "top-center",
+        });
+        setPassword("");
+        setConfirmPassword("");
+        setPasswordStrength(0);
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        setError(
+          error.response.data.message ||
+            t("users.toast.error.setPasswordFailed", {
+              errorMessage: "Unknown error",
+            }),
+        );
+      } else {
+        setError(
+          t("users.toast.error.setPasswordFailed", {
+            errorMessage: "Unknown error",
+          }),
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Dialog open={show} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader className="space-y-2">
-          <DialogTitle>{t("twoFactor.title")}</DialogTitle>
+          <DialogTitle>{t("menu.user.security", { ns: "common" })}</DialogTitle>
           <DialogDescription>{t("twoFactor.description")}</DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList
-            className={`grid w-full ${isTwoFactorEnabled ? "grid-cols-2" : "grid-cols-1"}`}
+            className={`grid w-full ${isTwoFactorEnabled ? "grid-cols-3" : "grid-cols-2"}`}
           >
+            <TabsTrigger value="password">
+              <LuSquarePen className="mr-2 h-4 w-4" />
+              {t("users.dialog.passwordSetting.setPassword")}
+            </TabsTrigger>
             {!isTwoFactorEnabled && (
               <TabsTrigger value="setup">
                 <LuShieldCheck className="mr-2 h-4 w-4" />
@@ -297,6 +405,95 @@ export default function TwoFactorAuthDialog({
               </TabsTrigger>
             )}
           </TabsList>
+
+          {/* Password Change Tab */}
+          <TabsContent value="password" className="space-y-4 py-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">
+                  {t("users.dialog.form.newPassword.title")}
+                </Label>
+                <Input
+                  id="password"
+                  className="h-10"
+                  type="password"
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    setError(null);
+                  }}
+                  placeholder={t("users.dialog.form.newPassword.placeholder")}
+                  autoFocus
+                />
+
+                {/* Password strength indicator */}
+                {password && (
+                  <div className="mt-2 space-y-1">
+                    <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-secondary-foreground">
+                      <div
+                        className={`${getStrengthColor()} transition-all duration-300`}
+                        style={{ width: `${(passwordStrength / 3) * 100}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("users.dialog.form.password.strength.title")}
+                      <span className="font-medium">{getStrengthLabel()}</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">
+                  {t("users.dialog.form.password.confirm.title")}
+                </Label>
+                <Input
+                  id="confirm-password"
+                  className="h-10"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(event) => {
+                    setConfirmPassword(event.target.value);
+                    setError(null);
+                  }}
+                  placeholder={t(
+                    "users.dialog.form.newPassword.confirm.placeholder",
+                  )}
+                />
+
+                {/* Password match indicator */}
+                {password && confirmPassword && (
+                  <div className="mt-1 flex items-center gap-1.5 text-xs">
+                    {password === confirmPassword ? (
+                      <>
+                        <LuCheck className="size-3.5 text-green-500" />
+                        <span className="text-green-600">
+                          {t("users.dialog.form.password.match")}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <LuX className="size-3.5 text-red-500" />
+                        <span className="text-red-600">
+                          {t("users.dialog.form.password.notMatch")}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Button
+              className="w-full"
+              onClick={handlePasswordChange}
+              disabled={isLoading || !password || password !== confirmPassword}
+            >
+              {isLoading
+                ? t("button.loading")
+                : t("users.dialog.passwordSetting.updateButton")}
+            </Button>
+          </TabsContent>
 
           {/* Setup Tab */}
           <TabsContent value="setup" className="space-y-4 py-4">
