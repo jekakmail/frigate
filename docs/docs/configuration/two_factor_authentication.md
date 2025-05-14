@@ -46,12 +46,25 @@ auth:
 ## Setting Up Two-Factor Authentication
 
 1. Log in to your Frigate account.
-2. Go to your account settings.
+2. Go to your account settings by clicking on the account icon in the bottom corner.
 3. Click on "Security".
-4. Click "Set up two-factor authentication".
-5. Scan the QR code with your authenticator app.
-6. Enter the verification code from your authenticator app.
-7. Save your recovery codes in a safe place. These codes can be used to log in if you lose access to your authenticator app.
+4. In the Security dialog, navigate to the "Setup" tab.
+5. Click "Start Setup" to begin the two-factor authentication setup process.
+6. Scan the QR code with your authenticator app.
+7. Enter your current password and the verification code from your authenticator app.
+8. Click "Enable Two-Factor Authentication".
+9. Save your recovery codes in a safe place. These codes can be used to log in if you lose access to your authenticator app.
+
+## Changing Your Password
+
+The Security dialog also allows you to change your password:
+
+1. Log in to your Frigate account.
+2. Go to your account settings by clicking on the account icon in the bottom corner.
+3. Click on "Security".
+4. In the Security dialog, the "Password" tab is selected by default.
+5. Enter your new password and confirm it.
+6. Click "Update" to save your new password.
 
 ## Logging In with Two-Factor Authentication
 
@@ -99,7 +112,7 @@ The "Remember this device" feature uses the following default settings:
 | Token validity | 30 days | How long a device remains trusted before requiring 2FA again (configurable via `auth.two_factor.device_token_expiry_days`) |
 | Cookie security | HTTP-only, SameSite=Lax | Security settings for the device token cookie |
 
-## Using Recovery Codes
+## Managing Recovery Codes
 
 If you lose access to your authenticator app, you can use one of your recovery codes to log in:
 
@@ -108,15 +121,25 @@ If you lose access to your authenticator app, you can use one of your recovery c
 3. Enter one of your recovery codes.
 4. If the code is correct, you'll be logged in.
 
-Note that each recovery code can only be used once. After using a recovery code, it's recommended to disable and re-enable 2FA to generate new recovery codes.
+Note that each recovery code can only be used once. You can generate new recovery codes at any time:
+
+1. Log in to your Frigate account.
+2. Go to your account settings by clicking on the account icon in the bottom corner.
+3. Click on "Security".
+4. In the Security dialog, navigate to the "Recovery Codes" tab.
+5. Enter your current password.
+6. Click "Generate New Recovery Codes".
+7. Save your new recovery codes in a safe place.
 
 ## Disabling Two-Factor Authentication
 
 1. Log in to your Frigate account.
-2. Go to your account settings.
+2. Go to your account settings by clicking on the account icon in the bottom corner.
 3. Click on "Security".
-4. Click "Disable two-factor authentication".
-5. Confirm by entering your password and a verification code or recovery code.
+4. In the Security dialog, navigate to the "Disable" tab.
+5. Enter your current password and either a verification code from your authenticator app or a recovery code.
+6. Click "Disable Two-Factor Authentication".
+7. The two-factor authentication will be disabled for your account.
 
 ## API Endpoints
 
