@@ -156,7 +156,7 @@ def load_labels(path: Optional[str], encoding="utf-8", prefill=91):
         return labels
 
 
-def get_tz_modifiers(tz_name: str) -> Tuple[str, str, int]:
+def get_tz_modifiers(tz_name: str) -> Tuple[str, str, float]:
     seconds_offset = (
         datetime.datetime.now(pytz.timezone(tz_name)).utcoffset().total_seconds()
     )
@@ -169,7 +169,7 @@ def get_tz_modifiers(tz_name: str) -> Tuple[str, str, int]:
 
 def to_relative_box(
     width: int, height: int, box: Tuple[int, int, int, int]
-) -> Tuple[int, int, int, int]:
+) -> Tuple[int | float, int | float, int | float, int | float]:
     return (
         box[0] / width,  # x
         box[1] / height,  # y
@@ -186,6 +186,9 @@ def create_mask(frame_shape, mask):
 def update_yaml_from_url(file_path, url):
     parsed_url = urllib.parse.urlparse(url)
     query_string = urllib.parse.parse_qs(parsed_url.query, keep_blank_values=True)
+
+    # Filter out empty keys but keep blank values for non-empty keys
+    query_string = {k: v for k, v in query_string.items() if k}
 
     for key_path_str, new_value_list in query_string.items():
         key_path = key_path_str.split(".")

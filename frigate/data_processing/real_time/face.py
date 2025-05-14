@@ -6,7 +6,7 @@ import json
 import logging
 import os
 import shutil
-from typing import Optional
+from typing import Any, Optional
 
 import cv2
 import numpy as np
@@ -157,7 +157,7 @@ class FaceRealTimeProcessor(RealTimeProcessorApi):
         self.faces_per_second.update()
         self.inference_speed.update(duration)
 
-    def process_frame(self, obj_data: dict[str, any], frame: np.ndarray):
+    def process_frame(self, obj_data: dict[str, Any], frame: np.ndarray):
         """Look for faces in image."""
         self.metrics.face_rec_fps.value = self.faces_per_second.eps()
         camera = obj_data["camera"]
@@ -198,7 +198,7 @@ class FaceRealTimeProcessor(RealTimeProcessorApi):
                 logger.debug("Not processing due to hitting max rec attempts.")
                 return
 
-        face: Optional[dict[str, any]] = None
+        face: Optional[dict[str, Any]] = None
 
         if self.requires_face_detection:
             logger.debug("Running manual face detection.")
@@ -221,6 +221,13 @@ class FaceRealTimeProcessor(RealTimeProcessorApi):
                 max(0, face_box[0]) : min(frame.shape[1], face_box[2]),
             ]
 
+            # check that face is correct size
+            if area(face_box) < self.config.cameras[camera].face_recognition.min_area:
+                logger.debug(
+                    f"Detected face that is smaller than the min_area {face} < {self.config.cameras[camera].face_recognition.min_area}"
+                )
+                return
+
             try:
                 face_frame = cv2.cvtColor(face_frame, cv2.COLOR_RGB2BGR)
             except Exception:
@@ -231,7 +238,7 @@ class FaceRealTimeProcessor(RealTimeProcessorApi):
                 logger.debug("No attributes to parse.")
                 return
 
-            attributes: list[dict[str, any]] = obj_data.get("current_attributes", [])
+            attributes: list[dict[str, Any]] = obj_data.get("current_attributes", [])
             for attr in attributes:
                 if attr.get("label") != "face":
                     continue
@@ -316,7 +323,7 @@ class FaceRealTimeProcessor(RealTimeProcessorApi):
 
         self.__update_metrics(datetime.datetime.now().timestamp() - start)
 
-    def handle_request(self, topic, request_data) -> dict[str, any] | None:
+    def handle_request(self, topic, request_data) -> dict[str, Any] | None:
         if topic == EmbeddingsRequestEnum.clear_face_classifier.value:
             self.recognizer.clear()
         elif topic == EmbeddingsRequestEnum.recognize_face.value:
