@@ -1273,6 +1273,52 @@ async def disable_two_factor(request: Request, body: AppPostDisableTwoFactorBody
     return JSONResponse(content={"success": True})
 
 
+@router.put(
+    "/users/{username}/two-factor/disable",
+    dependencies=[Depends(require_role(["admin"]))],
+)
+async def admin_disable_two_factor(
+    request: Request,
+    username: str,
+):
+    current_user = await get_current_user(request)
+    if isinstance(current_user, JSONResponse):
+        # auth failed
+        return current_user
+
+    current_role = current_user.get("role")
+    # viewers can't disable 2FA for anyone
+    if current_role == "viewer":
+        raise HTTPException(
+            status_code=403, detail="Admin role is required to disable two-factor authentication"
+        )
+
+    try:
+        db_user: User = User.get_by_id(username)
+    except DoesNotExist:
+        return JSONResponse(
+            content={"message": f"User {username} not found"}, status_code=404
+        )
+
+    # Check if 2FA is enabled for the user
+    if not db_user.two_factor_enabled:
+        return JSONResponse(
+            content={"message": "Two-factor authentication is not enabled for this user"},
+            status_code=400
+        )
+
+    # Disable 2FA for the user
+    logger.debug(f"Admin disabling 2FA for user {username}")
+    User.set_by_id(username, {
+        User.two_factor_enabled: False,
+        User.two_factor_secret: None,
+        User.recovery_codes: None
+    })
+    logger.debug(f"2FA disabled successfully for user {username}")
+
+    return JSONResponse(content={"success": True})
+
+
 @router.post("/two-factor/recovery-codes")
 async def generate_recovery_codes_endpoint(request: Request, body: AppPostGenerateRecoveryCodesBody):
     current_user = await get_current_user(request)

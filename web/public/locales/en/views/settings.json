@@ -422,13 +422,15 @@
         "createUser": "User {{user}} created successfully",
         "deleteUser": "User {{user}} deleted successfully",
         "updatePassword": "Password updated successfully.",
-        "roleUpdated": "Role updated for {{user}}"
+        "roleUpdated": "Role updated for {{user}}",
+        "twoFactorDisabled": "Two-factor authentication disabled for {{user}}"
       },
       "error": {
         "setPasswordFailed": "Failed to save password: {{errorMessage}}",
         "createUserFailed": "Failed to create user: {{errorMessage}}",
         "deleteUserFailed": "Failed to delete user: {{errorMessage}}",
-        "roleUpdateFailed": "Failed to update role: {{errorMessage}}"
+        "roleUpdateFailed": "Failed to update role: {{errorMessage}}",
+        "twoFactorDisableFailed": "Failed to disable two-factor authentication: {{errorMessage}}"
       }
     },
     "table": {
@@ -439,7 +441,8 @@
       "noUsers": "No users found.",
       "changeRole": "Change user role",
       "password": "Password",
-      "deleteUser": "Delete user"
+      "deleteUser": "Delete user",
+      "disableTwoFactor": "Disable two-factor authentication"
     },
     "dialog": {
       "form": {
@@ -563,6 +566,18 @@
     "description": "Secure your account with two-factor authentication",
     "enabled": "Enabled",
     "disabled": "Disabled",
+    "disableButton": "Disable 2FA",
+    "dialog": {
+      "disable": {
+        "title": "Disable Two-Factor Authentication",
+        "desc": "You are about to disable two-factor authentication for a user account.",
+        "warn": "Are you sure you want to disable two-factor authentication for <strong>{{username}}</strong>?",
+        "confirmLabel": "To confirm, type the full username:",
+        "confirmPlaceholder": "Enter username to confirm",
+        "confirmButton": "Disable 2FA",
+        "error": "Username does not match. Please enter the exact username."
+      }
+    },
     "tabs": {
       "setup": "Setup",
       "disable": "Disable",

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useContext } from "react";
 import ActivityIndicator from "@/components/indicators/activity-indicator";
 import { FrigateConfig } from "@/types/frigateConfig";
 import { Toaster } from "@/components/ui/sonner";
@@ -11,8 +11,10 @@ import axios from "axios";
 import CreateUserDialog from "@/components/overlay/CreateUserDialog";
 import { toast } from "sonner";
 import DeleteUserDialog from "@/components/overlay/DeleteUserDialog";
+import DisableTwoFactorDialog from "@/components/overlay/DisableTwoFactorDialog";
 import { HiTrash } from "react-icons/hi";
 import { FaUserEdit } from "react-icons/fa";
+import { AuthContext } from "@/context/auth-context";
 
 import {
   LuPlus,
@@ -43,11 +45,13 @@ export default function AuthenticationView() {
   const { t } = useTranslation("views/settings");
   const { data: config } = useSWR<FrigateConfig>("config");
   const { data: users, mutate: mutateUsers } = useSWR<User[]>("users");
+  const { auth } = useContext(AuthContext);
 
   const [showSetPassword, setShowSetPassword] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showRoleChange, setShowRoleChange] = useState(false);
+  const [showDisableTwoFactor, setShowDisableTwoFactor] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState<string>();
   const [selectedUserRole, setSelectedUserRole] = useState<
@@ -181,6 +185,45 @@ export default function AuthenticationView() {
           "Unknown error";
         toast.error(
           t("users.toast.error.roleUpdateFailed", {
+            errorMessage,
+          }),
+          {
+            position: "top-center",
+          },
+        );
+      });
+  };
+
+  const onDisableTwoFactor = (user: string) => {
+    setSelectedUser(user);
+    setShowDisableTwoFactor(true);
+  };
+
+  const confirmDisableTwoFactor = (user: string) => {
+    axios
+      .put(`users/${user}/two-factor/disable`)
+      .then((response) => {
+        if (response.status === 200) {
+          setShowDisableTwoFactor(false);
+          mutateUsers(
+            (users) =>
+              users?.map((u) =>
+                u.username === user ? { ...u, two_factor_enabled: false } : u,
+              ),
+            false,
+          );
+          toast.success(t("users.toast.success.twoFactorDisabled", { user }), {
+            position: "top-center",
+          });
+        }
+      })
+      .catch((error) => {
+        const errorMessage =
+          error.response?.data?.message ||
+          error.response?.data?.detail ||
+          "Unknown error";
+        toast.error(
+          t("users.toast.error.twoFactorDisableFailed", {
             errorMessage,
           }),
           {
@@ -347,6 +390,30 @@ export default function AuthenticationView() {
                                 </TooltipContent>
                               </Tooltip>
 
+                              {user.two_factor_enabled &&
+                                auth.user?.username === "admin" && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 border-amber-500/50 bg-amber-500/20 px-2 text-amber-600 hover:bg-amber-500/30 hover:text-amber-700"
+                                        onClick={() =>
+                                          onDisableTwoFactor(user.username)
+                                        }
+                                      >
+                                        <LuShieldAlert className="size-3.5" />
+                                        <span className="ml-1.5 hidden sm:inline-block">
+                                          {t("twoFactor.disableButton")}
+                                        </span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>{t("users.table.disableTwoFactor")}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
+
                               {user.username !== "admin" && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -406,6 +473,14 @@ export default function AuthenticationView() {
           currentRole={selectedUserRole}
           onSave={(role) => onChangeRole(selectedUser, role)}
           onCancel={() => setShowRoleChange(false)}
+        />
+      )}
+      {selectedUser && (
+        <DisableTwoFactorDialog
+          show={showDisableTwoFactor}
+          username={selectedUser}
+          onConfirm={() => confirmDisableTwoFactor(selectedUser)}
+          onCancel={() => setShowDisableTwoFactor(false)}
         />
       )}
     </div>
