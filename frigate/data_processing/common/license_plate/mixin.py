@@ -167,6 +167,8 @@ class LicensePlateProcessingMixin:
             outputs = self.model_runner.recognition_model(norm_images)
         except Exception as e:
             logger.warning(f"Error running LPR recognition model: {e}")
+            return [], []
+
         return self.ctc_decoder(outputs)
 
     def _process_license_plate(
@@ -1576,19 +1578,6 @@ class LicensePlateProcessingMixin:
 
             if object_id in self.camera_current_cars.get(camera, []):
                 self.camera_current_cars[camera].remove(object_id)
-
-                if len(self.camera_current_cars[camera]) == 0:
-                    self.requestor.send_data(
-                        "tracked_object_update",
-                        json.dumps(
-                            {
-                                "type": TrackedObjectUpdateTypesEnum.lpr,
-                                "name": None,
-                                "plate": None,
-                                "camera": camera,
-                            }
-                        ),
-                    )
 
 
 class CTCDecoder:

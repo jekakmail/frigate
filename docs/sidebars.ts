@@ -101,6 +101,7 @@ const sidebars: SidebarsConfig = {
     Troubleshooting: [
       "troubleshooting/faqs",
       "troubleshooting/recordings",
+      "troubleshooting/gpu",
       "troubleshooting/edgetpu",
     ],
     Development: [

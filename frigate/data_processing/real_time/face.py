@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import shutil
+from pathlib import Path
 from typing import Any, Optional
 
 import cv2
@@ -443,18 +444,6 @@ class FaceRealTimeProcessor(RealTimeProcessorApi):
             if object_id in self.camera_current_people.get(camera, []):
                 self.camera_current_people[camera].remove(object_id)
 
-                if len(self.camera_current_people[camera]) == 0:
-                    self.requestor.send_data(
-                        "tracked_object_update",
-                        json.dumps(
-                            {
-                                "type": TrackedObjectUpdateTypesEnum.face,
-                                "name": None,
-                                "camera": camera,
-                            }
-                        ),
-                    )
-
     def weighted_average(
         self, results_list: list[tuple[str, float, int]], max_weight: int = 4000
     ):
@@ -538,4 +527,4 @@ class FaceRealTimeProcessor(RealTimeProcessorApi):
 
             # delete oldest face image if maximum is reached
             if len(files) > self.config.face_recognition.save_attempts:
-                os.unlink(os.path.join(folder, files[-1]))
+                Path(os.path.join(folder, files[-1])).unlink(missing_ok=True)

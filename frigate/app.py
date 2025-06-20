@@ -6,6 +6,7 @@ import secrets
 import shutil
 from multiprocessing import Queue
 from multiprocessing.synchronize import Event as MpEvent
+from pathlib import Path
 from typing import Optional
 
 import psutil
@@ -44,6 +45,7 @@ from frigate.embeddings import EmbeddingsContext, manage_embeddings
 from frigate.events.audio import AudioProcessor
 from frigate.events.cleanup import EventCleanup
 from frigate.events.maintainer import EventProcessor
+from frigate.log import _stop_logging
 from frigate.models import (
     Event,
     Export,
@@ -684,6 +686,9 @@ class FrigateApp:
     def stop(self) -> None:
         logger.info("Stopping...")
 
+        # used by the docker healthcheck
+        Path("/dev/shm/.frigate-is-stopping").touch()
+
         self.stop_event.set()
 
         # set an end_time on entries without an end_time before exiting
@@ -770,5 +775,8 @@ class FrigateApp:
             shm = self.detection_shms.pop()
             shm.close()
             shm.unlink()
+
+        # exit the mp Manager process
+        _stop_logging()
 
         os._exit(os.EX_OK)
