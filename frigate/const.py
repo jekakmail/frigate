@@ -26,6 +26,7 @@ DEFAULT_ATTRIBUTE_LABEL_MAP = {
     "car": [
         "amazon",
         "an_post",
+        "canada_post",
         "dhl",
         "dpd",
         "fedex",
@@ -35,6 +36,7 @@ DEFAULT_ATTRIBUTE_LABEL_MAP = {
         "postnl",
         "postnord",
         "purolator",
+        "royal_mail",
         "ups",
         "usps",
     ],
@@ -70,6 +72,7 @@ LIBAVFORMAT_VERSION_MAJOR = int(os.environ.get("LIBAVFORMAT_VERSION_MAJOR", "59"
 FFMPEG_HWACCEL_NVIDIA = "preset-nvidia"
 FFMPEG_HWACCEL_VAAPI = "preset-vaapi"
 FFMPEG_HWACCEL_VULKAN = "preset-vulkan"
+FFMPEG_HWACCEL_RKMPP = "preset-rkmpp"
 FFMPEG_HVC1_ARGS = ["-tag:v", "hvc1"]
 
 # Regex constants

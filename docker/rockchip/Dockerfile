@@ -13,6 +13,7 @@ RUN sed -i "/https:\/\//d" /requirements-wheels.txt
 RUN sed -i "/onnxruntime/d" /requirements-wheels.txt
 RUN pip3 wheel --wheel-dir=/rk-wheels -c /requirements-wheels.txt -r /requirements-wheels-rk.txt
 RUN rm -rf /rk-wheels/opencv_python-*
+RUN rm -rf /rk-wheels/torch-*
 
 FROM deps AS rk-frigate
 ARG TARGETARCH
@@ -30,5 +31,7 @@ ADD https://github.com/MarcA711/rknn-toolkit2/releases/download/v2.3.2/librknnrt
 
 ADD --chmod=111 https://github.com/MarcA711/Rockchip-FFmpeg-Builds/releases/download/6.1-11/ffmpeg /usr/lib/ffmpeg/6.0/bin/
 ADD --chmod=111 https://github.com/MarcA711/Rockchip-FFmpeg-Builds/releases/download/6.1-11/ffprobe /usr/lib/ffmpeg/6.0/bin/
+ADD --chmod=111 https://github.com/MarcA711/Rockchip-FFmpeg-Builds/releases/download/7.1-1/ffmpeg /usr/lib/ffmpeg/7.0/bin/
+ADD --chmod=111 https://github.com/MarcA711/Rockchip-FFmpeg-Builds/releases/download/7.1-1/ffprobe /usr/lib/ffmpeg/7.0/bin/
 ENV DEFAULT_FFMPEG_VERSION="6.0"
 ENV INCLUDED_FFMPEG_VERSIONS="${DEFAULT_FFMPEG_VERSION}:${INCLUDED_FFMPEG_VERSIONS}"

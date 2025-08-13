@@ -561,7 +561,7 @@ face_recognition:
   recognition_threshold: 0.9
   # Optional: Min area of detected face box to consider running face recognition (default: shown below)
   min_area: 500
-  # Optional: Min face attempts for the sub label to be applied to the person object (default: shown below)
+  # Optional: Min face recognitions for the sub label to be applied to the person object (default: shown below)
   min_faces: 1
   # Optional: Number of images of recognized faces to save for training (default: shown below)
   save_attempts: 100
@@ -903,7 +903,7 @@ telemetry:
     # Optional: Enable Intel GPU stats (default: shown below)
     intel_gpu_stats: True
     # Optional: Treat GPU as SR-IOV to fix GPU stats (default: shown below)
-    sriov: False
+    intel_gpu_device: None
     # Optional: Enable network bandwidth stats monitoring for camera ffmpeg processes, go2rtc, and object detectors. (default: shown below)
     # NOTE: The container must either be privileged or have cap_net_admin, cap_net_raw capabilities enabled.
     network_bandwidth: False

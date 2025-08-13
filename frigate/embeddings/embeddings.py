@@ -1,12 +1,14 @@
 """SQLite-vec embeddings database."""
 
 import datetime
+import io
 import logging
 import os
 import threading
 import time
 
 from numpy import ndarray
+from PIL import Image
 from playhouse.shortcuts import model_to_dict
 
 from frigate.comms.inter_process import InterProcessRequestor
@@ -199,14 +201,31 @@ class Embeddings:
         @param: upsert If embedding should be upserted into vec DB
         """
         start = datetime.datetime.now().timestamp()
-        ids = list(event_thumbs.keys())
-        embeddings = self.vision_embedding(list(event_thumbs.values()))
+        valid_ids = []
+        valid_thumbs = []
+        for eid, thumb in event_thumbs.items():
+            try:
+                img = Image.open(io.BytesIO(thumb))
+                img.verify()  # Will raise if corrupt
+                valid_ids.append(eid)
+                valid_thumbs.append(thumb)
+            except Exception as e:
+                logger.warning(
+                    f"Embeddings reindexing: Skipping corrupt thumbnail for event {eid}: {e}"
+                )
+
+        if not valid_thumbs:
+            logger.warning(
+                "Embeddings reindexing: No valid thumbnails to embed in this batch."
+            )
+            return []
+
+        embeddings = self.vision_embedding(valid_thumbs)
 
         if upsert:
             items = []
-
-            for i in range(len(ids)):
-                items.append(ids[i])
+            for i in range(len(valid_ids)):
+                items.append(valid_ids[i])
                 items.append(serialize(embeddings[i]))
                 self.image_eps.update()
 
@@ -214,12 +233,12 @@ class Embeddings:
                 """
                 INSERT OR REPLACE INTO vec_thumbnails(id, thumbnail_embedding)
                 VALUES {}
-                """.format(", ".join(["(?, ?)"] * len(ids))),
+                """.format(", ".join(["(?, ?)"] * len(valid_ids))),
                 items,
             )
 
         duration = datetime.datetime.now().timestamp() - start
-        self.text_inference_speed.update(duration / len(ids))
+        self.text_inference_speed.update(duration / len(valid_ids))
 
         return embeddings
 
@@ -315,27 +334,24 @@ class Embeddings:
             .paginate(current_page, batch_size)
         )
 
-        while len(events) > 0:
+        while events:
             event: Event
             batch_thumbs = {}
             batch_descs = {}
             for event in events:
-                thumbnail = get_event_thumbnail_bytes(event)
-
-                if thumbnail is None:
-                    continue
-
-                batch_thumbs[event.id] = thumbnail
-                totals["thumbnails"] += 1
+                totals["processed_objects"] += 1
 
                 if description := event.data.get("description", "").strip():
                     batch_descs[event.id] = description
                     totals["descriptions"] += 1
 
-                totals["processed_objects"] += 1
+                if thumbnail := get_event_thumbnail_bytes(event):
+                    batch_thumbs[event.id] = thumbnail
+                    totals["thumbnails"] += 1
 
             # run batch embedding
-            self.batch_embed_thumbnail(batch_thumbs)
+            if batch_thumbs:
+                self.batch_embed_thumbnail(batch_thumbs)
 
             if batch_descs:
                 self.batch_embed_description(batch_descs)

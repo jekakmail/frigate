@@ -20,16 +20,19 @@
         "trackedObjectsProcessed": "Käsitellyt seuratut objektit: ",
         "thumbnailsEmbedded": "Kuvakkeet sisällytetty: ",
         "descriptionsEmbedded": "Kuvaukset sisällytetty: "
-      }
+      },
+      "context": "Selausta voidaan käyttää sen jälkeen kun seurattavien kohteiden uudelleenindeksöinti on valmistunut."
     },
     "downloadingModels": {
       "context": "Frigate lataa semanttista hakua varten vaadittavat upotusmallit. Tämä saattaa viedä useamman minuutin, riippuen yhteytesi nopeudesta.",
       "setup": {
         "visionModel": "Vision-malli",
-        "textModel": "Tekstimalli"
+        "textModel": "Tekstimalli",
+        "textTokenizer": "Tekstin osioija"
       },
       "tips": {
-        "documentation": "Lue dokumentaatio"
+        "documentation": "Lue dokumentaatio",
+        "context": "Saatat haluta uudelleenindeksoida seurattavien kohteiden upotukset, kun mallit on ladattu."
       },
       "error": "Tapahtui virhe. Tarkista Frigaten lokit."
     }
@@ -73,7 +76,8 @@
     "noImageFound": "Tältä aikaleimalta ei löytynyt kuvia.",
     "createObjectMask": "Luo kohdemaski",
     "scrollViewTips": "Vieritä katsoaksesi merkittäviä hetkiä kohteen elinkaarelta.",
-    "autoTrackingTips": "Kohteen rajojen sijainti on epätarkka automaattisesti seuraaville kameroille."
+    "autoTrackingTips": "Kohteen rajojen sijainti on epätarkka automaattisesti seuraaville kameroille.",
+    "adjustAnnotationSettings": "Säädä merkintäasetuksia"
   },
   "trackedObjectDetails": "Seurattavien kohteiden tiedot",
   "type": {
@@ -81,5 +85,11 @@
     "snapshot": "kuvankaappaus",
     "video": "video",
     "object_lifecycle": "kohteen elinkaari"
+  },
+  "itemMenu": {
+    "downloadSnapshot": {
+      "label": "Lataa kuvankaappaus",
+      "aria": "Lataa kuvankaappaus"
+    }
   }
 }

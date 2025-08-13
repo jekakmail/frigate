@@ -13,6 +13,7 @@ import { FrigateConfig } from "@/types/frigateConfig";
 import { useFormattedTimestamp, useTimezone } from "@/hooks/use-date-utils";
 import { RecordingsSummary } from "@/types/review";
 import { useTranslation } from "react-i18next";
+import { TZDate } from "react-day-picker";
 
 type CameraStorage = {
   [key: string]: {
@@ -42,12 +43,13 @@ export default function StorageMetrics({
     }
 
     const totalStorage = {
-      used: 0,
+      used: stats.service.storage["/media/frigate/recordings"]["used"],
+      camera: 0,
       total: stats.service.storage["/media/frigate/recordings"]["total"],
     };
 
     Object.values(cameraStorage).forEach(
-      (cam) => (totalStorage.used += cam.usage),
+      (cam) => (totalStorage.camera += cam.usage),
     );
     setLastUpdated(Date.now() / 1000);
     return totalStorage;
@@ -65,9 +67,10 @@ export default function StorageMetrics({
   const earliestDate = useMemo(() => {
     const keys = Object.keys(recordingsSummary || {});
     return keys.length
-      ? new Date(keys[keys.length - 1]).getTime() / 1000
+      ? new TZDate(keys[keys.length - 1] + "T00:00:00", timezone).getTime() /
+          1000
       : null;
-  }, [recordingsSummary]);
+  }, [recordingsSummary, timezone]);
 
   const timeFormat = config?.ui.time_format === "24hour" ? "24hour" : "12hour";
   const format = useMemo(() => {
@@ -118,7 +121,7 @@ export default function StorageMetrics({
           </div>
           <StorageGraph
             graphId="general-recordings"
-            used={totalStorage.used}
+            used={totalStorage.camera}
             total={totalStorage.total}
           />
           {earliestDate && (

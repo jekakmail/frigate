@@ -265,9 +265,15 @@ class OnvifController:
                             "RelativeZoomTranslationSpace"
                         ][zoom_space_id]["URI"]
                 else:
-                    if "Zoom" in move_request["Translation"]:
+                    if (
+                        move_request["Translation"] is not None
+                        and "Zoom" in move_request["Translation"]
+                    ):
                         del move_request["Translation"]["Zoom"]
-                    if "Zoom" in move_request["Speed"]:
+                    if (
+                        move_request["Speed"] is not None
+                        and "Zoom" in move_request["Speed"]
+                    ):
                         del move_request["Speed"]["Zoom"]
                     logger.debug(
                         f"{camera_name}: Relative move request after deleting zoom: {move_request}"
@@ -791,6 +797,10 @@ class OnvifController:
                 f"Camera {camera_name} does not support the ONVIF GetStatus method. Autotracking will not function correctly and must be disabled in your config."
             )
             return
+
+        logger.debug(
+            f"{camera_name}: Pan/tilt status: {pan_tilt_status}, Zoom status: {zoom_status}"
+        )
 
         if pan_tilt_status == "IDLE" and (zoom_status is None or zoom_status == "IDLE"):
             self.cams[camera_name]["active"] = False

@@ -598,7 +598,7 @@ def recording_clip(
             if clip.start_time < start_ts:
                 file.write(f"inpoint {int(start_ts - clip.start_time)}\n")
 
-            # if this is the ending clip and end trim is enabled, add an outpoint
+            # if this is the ending clip, add an outpoint
             if clip.end_time > end_ts:
                 file.write(f"outpoint {int(end_ts - clip.start_time)}\n")
 
@@ -800,7 +800,10 @@ def vod_event(event_id: str):
     )
 
 
-@router.get("/events/{event_id}/snapshot.jpg")
+@router.get(
+    "/events/{event_id}/snapshot.jpg",
+    description="Returns a snapshot image for the specified object id. NOTE: The query params only take affect while the event is in-progress. Once the event has ended the snapshot configuration is used.",
+)
 def event_snapshot(
     request: Request,
     event_id: str,

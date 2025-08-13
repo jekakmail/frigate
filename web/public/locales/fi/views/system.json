@@ -13,6 +13,13 @@
     },
     "download": {
       "label": "Lataa lokit"
+    },
+    "tips": "Lokeja toistetaan palvelimelta",
+    "toast": {
+      "error": {
+        "fetchingLogsFailed": "Virhe noudettaessa lokeja: {{errorMessage}}",
+        "whileStreamingLogs": "Virhe toistettaessa lokeja: {{errorMessage}}"
+      }
     }
   },
   "documentTitle": {
@@ -37,7 +44,8 @@
       "gpuDecoder": "GPU-dekooderi",
       "gpuInfo": {
         "vainfoOutput": {
-          "title": "Vainfon tulostus"
+          "title": "Vainfon tulostus",
+          "returnCode": "Paluuarvo: {{code}}"
         },
         "toast": {
           "success": "Kopioi GPU:n tiedot leikepöydälle"
@@ -49,6 +57,14 @@
           "label": "Sulje GPU:n tiedot"
         }
       }
-    }
+    },
+    "detector": {
+      "memoryUsage": "Ilmaiseman muistinkäyttö",
+      "title": "Ilmaisimet",
+      "inferenceSpeed": "Ilmaisimen päättelynopeus",
+      "cpuUsage": "Ilmaisimen CPU-käyttö",
+      "temperature": "Ilmaisimen lämpötila"
+    },
+    "title": "Yleinen"
   }
 }

@@ -291,11 +291,9 @@ class CameraState:
             new_obj.thumbnail_data = thumbnail_data
             tracked_objects[id].thumbnail_data = thumbnail_data
             object_type = new_obj.obj_data["label"]
-            self.best_objects[object_type] = new_obj
 
             # call event handlers
-            for c in self.callbacks["snapshot"]:
-                c(self.name, self.best_objects[object_type], frame_name)
+            self.send_mqtt_snapshot(new_obj, object_type)
 
             for c in self.callbacks["start"]:
                 c(self.name, new_obj, frame_name)
@@ -350,6 +348,7 @@ class CameraState:
             removed_obj = tracked_objects[id]
             if "end_time" not in removed_obj.obj_data:
                 removed_obj.obj_data["end_time"] = frame_time
+                logger.debug(f"{self.name}: end callback for object {id}")
                 for c in self.callbacks["end"]:
                     c(self.name, removed_obj, frame_name)
 
@@ -416,13 +415,9 @@ class CameraState:
                     or (now - current_best.thumbnail_data["frame_time"])
                     > self.camera_config.best_image_timeout
                 ):
-                    self.best_objects[object_type] = obj
-                    for c in self.callbacks["snapshot"]:
-                        c(self.name, self.best_objects[object_type], frame_name)
+                    self.send_mqtt_snapshot(obj, object_type)
             else:
-                self.best_objects[object_type] = obj
-                for c in self.callbacks["snapshot"]:
-                    c(self.name, self.best_objects[object_type], frame_name)
+                self.send_mqtt_snapshot(obj, object_type)
 
         for c in self.callbacks["camera_activity"]:
             c(self.name, camera_activity)
@@ -431,7 +426,7 @@ class CameraState:
         current_thumb_frames = {
             obj.thumbnail_data["frame_time"]
             for obj in tracked_objects.values()
-            if not obj.false_positive and obj.thumbnail_data is not None
+            if obj.thumbnail_data is not None
         }
         current_best_frames = {
             obj.thumbnail_data["frame_time"] for obj in self.best_objects.values()
@@ -441,6 +436,17 @@ class CameraState:
             for t in self.frame_cache.keys()
             if t not in current_thumb_frames and t not in current_best_frames
         ]
+        if len(thumb_frames_to_delete) > 0:
+            logger.debug(f"{self.name}: Current frame cache contents:")
+            for k, v in self.frame_cache.items():
+                logger.debug(f"  frame time: {k}, object id: {v['object_id']}")
+            for obj_id, obj in tracked_objects.items():
+                thumb_time = (
+                    obj.thumbnail_data["frame_time"] if obj.thumbnail_data else None
+                )
+                logger.debug(
+                    f"{self.name}: Tracked object {obj_id} thumbnail frame_time: {thumb_time}, false positive: {obj.false_positive}"
+                )
         for t in thumb_frames_to_delete:
             object_id = self.frame_cache[t].get("object_id", "unknown")
             logger.debug(f"{self.name}: Deleting {t} from frame cache for {object_id}")
@@ -459,6 +465,20 @@ class CameraState:
                     self.frame_manager.close(self.previous_frame_id)
 
             self.previous_frame_id = frame_name
+
+    def send_mqtt_snapshot(self, new_obj: TrackedObject, object_type: str) -> None:
+        for c in self.callbacks["snapshot"]:
+            updated = c(self.name, new_obj)
+
+            # if the snapshot was not updated, then this object is not a best object
+            # but all new objects should be considered the next best object
+            # so we remove the label from the best objects
+            if updated:
+                self.best_objects[object_type] = new_obj
+            else:
+                if object_type in self.best_objects:
+                    self.best_objects.pop(object_type)
+                break
 
     def save_manual_event_image(
         self,

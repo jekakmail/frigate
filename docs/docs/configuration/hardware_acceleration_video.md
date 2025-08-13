@@ -176,15 +176,25 @@ For more information on the various values across different distributions, see h
 
 Depending on your OS and kernel configuration, you may need to change the `/proc/sys/kernel/perf_event_paranoid` kernel tunable. You can test the change by running `sudo sh -c 'echo 2 >/proc/sys/kernel/perf_event_paranoid'` which will persist until a reboot. Make it permanent by running `sudo sh -c 'echo kernel.perf_event_paranoid=2 >> /etc/sysctl.d/local.conf'`
 
-#### Stats for SR-IOV devices
+#### Stats for SR-IOV or other devices
 
-When using virtualized GPUs via SR-IOV, additional args are needed for GPU stats to function. This can be enabled with the following config:
+When using virtualized GPUs via SR-IOV, you need to specify the device path to use to gather stats from `intel_gpu_top`. This example may work for some systems using SR-IOV:
 
 ```yaml
 telemetry:
   stats:
-    sriov: True
+    intel_gpu_device: "sriov"
 ```
+
+For other virtualized GPUs, try specifying the direct path to the device instead:
+
+```yaml
+telemetry:
+  stats:
+    intel_gpu_device: "drm:/dev/dri/card0"
+```
+
+If you are passing in a device path, make sure you've passed the device through to the container.
 
 ## AMD/ATI GPUs (Radeon HD 2000 and newer GPUs) via libva-mesa-driver
 
@@ -376,17 +386,45 @@ Make sure to follow the [Rockchip specific installation instructions](/frigate/i
 Add one of the following FFmpeg presets to your `config.yml` to enable hardware video processing:
 
 ```yaml
-# if you try to decode a h264 encoded stream
 ffmpeg:
-  hwaccel_args: preset-rk-h264
-
-# if you try to decode a h265 (hevc) encoded stream
-ffmpeg:
-  hwaccel_args: preset-rk-h265
+  hwaccel_args: preset-rkmpp
 ```
 
 :::note
 
 Make sure that your SoC supports hardware acceleration for your input stream. For example, if your camera streams with h265 encoding and a 4k resolution, your SoC must be able to de- and encode h265 with a 4k resolution or higher. If you are unsure whether your SoC meets the requirements, take a look at the datasheet.
+
+:::
+
+:::warning
+
+If one or more of your cameras are not properly processed and this error is shown in the logs:
+
+```
+[segment @ 0xaaaaff694790] Timestamps are unset in a packet for stream 0. This is deprecated and will stop working in the future. Fix your code to set the timestamps properly
+[Parsed_scale_rkrga_0 @ 0xaaaaff819070] No hw context provided on input
+[Parsed_scale_rkrga_0 @ 0xaaaaff819070] Failed to configure output pad on Parsed_scale_rkrga_0
+Error initializing filters!
+Error marking filters as finished
+[out#1/rawvideo @ 0xaaaaff3d8730] Nothing was written into output file, because at least one of its streams received no packets.
+Restarting ffmpeg...
+```
+
+you should try to uprade to FFmpeg 7. This can be done using this config option:
+
+```
+ffmpeg:
+  path: "7.0"
+```
+
+You can set this option globally to use FFmpeg 7 for all cameras or on camera level to use it only for specific cameras. Do not confuse this option with:
+
+```
+cameras:
+  name:
+    ffmpeg:
+      inputs:
+        - path: rtsp://viewer:{FRIGATE_RTSP_PASSWORD}@10.0.10.10:554/cam/realmonitor?channel=1&subtype=2
+```
 
 :::

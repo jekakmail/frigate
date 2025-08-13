@@ -13,6 +13,12 @@
       "submitToPlus": {
         "label": "Kirim ke Frigate+",
         "desc": "Objek di lokasi yang ingin Anda hindari bukanlah deteksi palsu. Mengirimnya sebagai deteksi palsu akan membingungkan model."
+      },
+      "review": {
+        "question": {
+          "label": "Konfirmasi label ini untuk Frigate Plus",
+          "ask_a": "Apakah objek ini adalah sebuah<code>{{label}}</code>?"
+        }
       }
     }
   }
